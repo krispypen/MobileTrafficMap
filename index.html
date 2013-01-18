@@ -86,7 +86,6 @@ function gpsUpdated(gpsLatLng, speed, heading) {
     options.map.zoom = map.getZoom();
     options.map.lat = gpsLatLng.lat();
     options.map.lon = gpsLatLng.lng();
-    saveSettings();
   }
 
   // check follow
@@ -151,7 +150,7 @@ function gpsPoll() {
 				return;
 			}
 			alertedgpserror = true;
-			alert("error:"+error.code+"-"+error.message);
+			//alert("error:"+error.code+"-"+error.message);
 		},
 		{enableHighAccuracy:true, maximumAge:30000, timeout:27000}
 	);
