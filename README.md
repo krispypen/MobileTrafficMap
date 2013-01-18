@@ -1,3 +1,3 @@
-Just a simple Google Maps with traffic and geolocation, easy to use, the map follows you while driving.
+Just a simple Google Maps with traffic and geolocation, easy to use on mobile devices, the map follows you while driving.
 
-http://krispypen.github.com/MobileTrafficMap
+Bookmark this link on your device: http://krispypen.github.com/MobileTrafficMap
