@@ -1,5 +1,11 @@
+MobileTrafficMap
+===============
+
 Just a simple full screen Google Map with traffic and geolocation, easy to use on mobile devices, the map follows you while driving.
 
-Bookmark this link on your device: http://krispypen.github.com/MobileTrafficMap
+## Demo + bookmark
+Bookmark this link on your mobile device: http://krispypen.github.com/MobileTrafficMap
 
-(For iphone users: geolocation should be enabled for safari in you settings, this is the default setting)
+## Authors
+
+Kris Pypen (github: [@krispypen](https://github.com/krispypen), twitter: [@krispypen](https://twitter.com/krispypen))
