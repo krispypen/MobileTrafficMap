@@ -1,7 +1,7 @@
 MobileTrafficMap
 ===============
 
-Just a simple full screen Google Map with traffic and geolocation, easy to use on mobile devices, the map follows you while driving.
+Just a simple fullscreen Google Map with traffic and geolocation, easy to use on mobile devices, the map follows you while driving.
 
 ## Demo + bookmark
 Bookmark this link on your mobile device: http://krispypen.github.com/MobileTrafficMap
