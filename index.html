@@ -120,7 +120,6 @@ function enableGPS() {
     if (gpsHasFix)
       gpsPlace.setMap(map);
     options.map.gps = true;
-    saveSettings();
   }
 }
 
@@ -129,7 +128,6 @@ function enableGPS() {
 function disableGPS() {
   if (options.map.gps) {
     options.map.gps = false;
-    saveSettings();
     if (gpsHasFix)
       gpsPlace.setMap(null);
   }

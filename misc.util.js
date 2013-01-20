@@ -104,8 +104,6 @@ function loadOptions(o) {
       options.theme.url = o.theme.url;
   }
 
-  // save the newly loaded/updated options
-  saveSettings();
 }
 
 
