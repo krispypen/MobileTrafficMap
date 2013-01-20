@@ -18,6 +18,9 @@
 <script type="text/javascript">
 
 var map;
+var directionsDisplay;
+var directionsService = new google.maps.DirectionsService();
+var routerendered = false;
 
 var options = {
   version: 5,
@@ -142,24 +145,44 @@ function gpsPoll() {
 
   if (options.map.gps) {
     try {
-		navigator.geolocation.watchPosition(function(position){
-			gpsUpdated(new google.maps.LatLng(position.coords.latitude, position.coords.longitude), position.coords.speed, position.coords.heading);
-		},
-		function(error){
-			if(alertedgpserror){
-				return;
-			}
-			alertedgpserror = true;
-			//alert("error:"+error.code+"-"+error.message);
-		},
-		{enableHighAccuracy:true, maximumAge:30000, timeout:27000}
+	navigator.geolocation.watchPosition(function(position){
+		var to = getRequestParam('to');
+		if(to && routerendered != true) {
+			var request = {
+			   origin: new google.maps.LatLng(position.coords.latitude, position.coords.longitude),
+			    destination:to,
+			    travelMode: google.maps.TravelMode.DRIVING
+			  };
+			  directionsService.route(request, function(result, status) {
+			    if (status == google.maps.DirectionsStatus.OK) {
+			      directionsDisplay.setDirections(result);
+			    }
+			  });
+			  routerendered = true;
+		}
+		  gpsUpdated(new google.maps.LatLng(position.coords.latitude, position.coords.longitude), position.coords.speed, position.coords.heading);
+		/*map.drawRoute({
+		      origin: [position.coords.latitude, position.coords.longitude],
+		      destination: [51.5073346, -0.1276831],
+		      travelMode: 'driving',
+		      strokeColor: '#000',
+		      strokeOpacity: 0.6,
+		      strokeWeight: 6
+		    });*/
+	},
+	function(error){
+		if(alertedgpserror){
+			return;
+		}
+		alertedgpserror = true;
+		//alert("error:"+error.code+"-"+error.message);
+	},
+	{enableHighAccuracy:true, maximumAge:30000, timeout:27000}
 	);
     }
     catch(err) {
     }
   }
-
-  //gpsTimer = setTimeout("gpsPoll()", gpsRefresh);
 }
 alertedgpserror = false;
 //############
@@ -245,6 +268,11 @@ function loadPlaces(refr, loadMarkersCallback) {
   timer = setTimeout("loadPlaces(" + refr + ")", refr);
 }
 
+function getRequestParam(name){
+   if(name=(new RegExp('[?&]'+encodeURIComponent(name)+'=([^&]*)')).exec(location.search))
+      return decodeURIComponent(name[1]);
+}
+
 //############
 
 function zoomIn() {
@@ -281,7 +309,9 @@ function initialize() {
   DragFix.enableWorkaround();
 
   // map initialization
-
+  directionsDisplay = new google.maps.DirectionsRenderer({
+	  preserveViewport: true
+  });
   map = new google.maps.Map(
     document.getElementById("map_canvas"),
     {
@@ -297,22 +327,22 @@ function initialize() {
       }
     }
   );
-
-  // map.getPane(G_MAP_MAP_PANE).parentNode.appendChild(document.getElementById("blip"));
-  // var attrs = getElementsByAttribute(document.getElementById("map_canvas"), "div", "style", "z-index: 100; position: absolute; left: 0px; top: 0px; ");
-  // alert(attrs.length);
+  directionsDisplay.setMap(map);
+  gpsPoll();
 
   lastRequestPoint = new google.maps.LatLng(0, 0);
   gpsPlace = new GPSMarker();
 
-  map.overlayMapTypes.insertAt(0, new google.maps.ImageMapType({
+  var trafficLayer = new google.maps.TrafficLayer();
+  trafficLayer.setMap(map);
+  /*map.overlayMapTypes.insertAt(0, new google.maps.ImageMapType({
     getTileUrl: function(coord, zoom) {
       return "http://mt0.google.com/vt?hl=en&lyrs=h@116,traffic|seconds_into_week:-1&v=w2.0&x=" +
         coord.x + "&y=" + coord.y + "&z=" + zoom + "&opts=T";
     },
     tileSize: new google.maps.Size(256, 256),
     isPng: true
-  }));
+  }));*/
 
   // events
   if (window.attachEvent)
@@ -329,9 +359,6 @@ function initialize() {
 		  document.getElementById('center_div').style.display= 'block';
   		}
 	  });
-
-  // GPS thread
-  gpsTimer = setTimeout("gpsPoll()", gpsRefresh);
 
   // resize handler calls move handler, that calls loadPlaces
   resizeHandler();
