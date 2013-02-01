@@ -59,3 +59,12 @@ h3 { color: #898989; text-transform: uppercase; }
 #sidebar_main { background-image: url(images/bg-sidebar.png); }
 #sidebar img { margin-left: 35px; margin-top: 20px; }
 #sidebar_main img { margin-left: 35px; margin-top: 15px; }
+
+#roomlist {position:absolute; bottom: 0; right: 20px; font-size: 12px;}
+.roomlistitem {float:right; border:1px solid grey; background: white; margin-right: 5px; border-top-left-radius:5px; border-top-right-radius:5px}
+.roomlistitem .roombutton{ padding:5px; cursor:pointer}
+.roomlistitem .roomwindow {display:none; height:200px; width:200px; position:relative}
+.roomlistitem .roomwindow h1 .closer {float:right;color:black;cursor:pointer;margin-right:5px}
+.roomlistitem .roomwindow h1 {margin:0;font-size:18px;width:100%;border-bottom:1px solid grey; background: #ddd; border-top-left-radius: 5px; border-top-right-radius: 5px}
+.roomlistitem .roomwindow .chattext{overflow-y:scroll; position:absolute; bottom:25px;top:25px;width:100%}
+.roomlistitem .roomwindow .chatinputbox{position:absolute; bottom:0;right:0; width:193px}
