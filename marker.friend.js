@@ -1,11 +1,4 @@
 function FriendMarker() {
-  var gpsIcon = new google.maps.Marker(
-    'icons/friend.png',
-    new google.maps.Size(10, 11),
-    new google.maps.Point(0, 0),
-    new google.maps.Point(4, 5)
-  );
-
   this.speed = 0;
   this.heading = 0;
   this.name = 'No name';
@@ -15,7 +8,7 @@ function FriendMarker() {
   this.lengthMul = 1;
   this.radius = 0;
 
-  google.maps.Marker.apply(this, [ { position: new google.maps.LatLng(0, 0), flat: true, clickable: true } ]);
+  google.maps.Marker.apply(this, [ { /*icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=J|FD4050|000000',*/ position: new google.maps.LatLng(0, 0), flat: true, clickable: true } ]);
   google.maps.event.addListener(this, 'click', function() {
       var infowindow = new google.maps.InfoWindow({
 	    content: this.name

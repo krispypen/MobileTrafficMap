@@ -1,7 +1,7 @@
   socketConnection = null;
   socketConnectionInited = false;
   window.addEventListener("load", function(){
-    var url = 'ws://localhost:1337';
+    var url = 'ws://46.4.79.121:1337';
     var name = getRequestParam('name');
     if(name) {
       url += '?name=' + name;
