@@ -113,7 +113,7 @@ function Client(connection, key, name) {
         if(c.getKey() != this.getKey()) {
           var obj = {
             time: (new Date()).getTime(),
-            action: "updatelocation",
+            action: "updateposition",
             identifier: this.getKey(),
             lat: this.getLatitude(),
             lon: this.getLongitude()
@@ -160,6 +160,23 @@ wsServer.on('request', function(request) {
             } else if (json.action == 'leaveroom') {
               var room = World.getOrCreateRoom(json.name);
               client.removeRoom(room);
+            } else if (json.action == 'chat') {
+              var room = World.getOrCreateRoom(json.room);
+              var clients = room.getClients();
+              for (var j=0; j < clients.length; j++) {
+                var c = clients[j];
+                var obj = {
+                  time: (new Date()).getTime(),
+                  action: "chat",
+                  room: json.room,
+                  text: json.text,
+                  name: client.getName()
+                };
+                console.log("sending to " + c.getName() + " (" + c.getKey() + ")");
+                console.log(obj);
+                var json = JSON.stringify({ type:'message', data: obj });
+                c.getConnection().sendUTF(json);
+              }
             }
         }
     });
