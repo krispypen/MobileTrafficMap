@@ -160,7 +160,7 @@ wsServer.on('request', function(request) {
             } else if (json.action == 'leaveroom') {
               var room = World.getOrCreateRoom(json.name);
               client.removeRoom(room);
-            } else if (json.action == 'chat') {
+            } else if (json.action == 'sendchat') {
               var room = World.getOrCreateRoom(json.room);
               var clients = room.getClients();
               for (var j=0; j < clients.length; j++) {
