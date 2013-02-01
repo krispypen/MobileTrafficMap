@@ -161,15 +161,17 @@ wsServer.on('request', function(request) {
               var room = World.getOrCreateRoom(json.name);
               client.removeRoom(room);
             } else if (json.action == 'sendchat') {
-              var room = World.getOrCreateRoom(json.room);
+              var roomId = json.room;
+              var text = json.text;
+              var room = World.getOrCreateRoom(roomId);
               var clients = room.getClients();
               for (var j=0; j < clients.length; j++) {
                 var c = clients[j];
                 var obj = {
                   time: (new Date()).getTime(),
                   action: "chat",
-                  room: json.room,
-                  text: json.text,
+                  room: roomId,
+                  text: text,
                   name: client.getName()
                 };
                 console.log("sending to " + c.getName() + " (" + c.getKey() + ")");
