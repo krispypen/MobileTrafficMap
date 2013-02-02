@@ -48,6 +48,8 @@
       } else if(json.data.action == 'chat'){
         document.getElementById(json.data.room + '_chattext').innerHTML = document.getElementById(json.data.room + '_chattext').innerHTML
           + '<div class="chatline">' + json.data.name + ': '+ json.data.text + '</div>';
+        document.getElementById(room + '_roombutton').style.display='none';
+        document.getElementById(room + '_roomwindow').style.display='block';
       }
     };
     socketConnection.onerror = function(evt) {
