@@ -110,7 +110,7 @@ function gpsUpdated(gpsLatLng, speed, heading) {
   if(socketConnectionInited) {
     var obj = {
         action: 'updateposition',
-        time: (new Date()).getTime(),
+        time: new Date(),
         lat: gpsLatLng.lat(),
         lon: gpsLatLng.lng()
      };
@@ -403,6 +403,7 @@ function initialize() {
   function sendchat(id) {
     var inputEl = document.getElementById(id + '_chatinputbox');
     var obj = {
+        time: new Date(),
         action: 'sendchat',
         room: id,
         text: inputEl.value

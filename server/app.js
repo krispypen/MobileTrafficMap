@@ -52,7 +52,7 @@ function Client(connection, key, name) {
     for (var j=0; j < roomMates.length; j++) {
       var roomMate = roomMates[j];
       var obj = {
-        time: (new Date()).getTime(),
+        time: (new Date()),
         action: "add",
         identifier: roomMate.getKey(),
         name: roomMate.getName(),
@@ -116,7 +116,7 @@ function Client(connection, key, name) {
         var c = clients[j];
         if(c.getKey() != this.getKey()) {
           var obj = {
-            time: (new Date()).getTime(),
+            time: new Date(),
             action: "updateposition",
             identifier: this.getKey(),
             lat: this.getLatitude(),
@@ -173,7 +173,7 @@ wsServer.on('request', function(request) {
               for (var j=0; j < clients.length; j++) {
                 var c = clients[j];
                 var obj = {
-                  time: (new Date()).getTime(),
+                  time: new Date(),
                   action: "chat",
                   room: roomId,
                   text: text,
