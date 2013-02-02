@@ -14,7 +14,7 @@ var World = {
     this.clients.push(client);
   },
   removeClient: function(client) {
-    var rooms = client.getRooms();
+    var rooms = client.getRooms().slice(); //slice is needed because the array changes in the for loop
     for (var i=0; i < rooms.length; i++) {
        var room = rooms[i];
        client.removeRoom(room);
@@ -26,7 +26,6 @@ var World = {
 function Room(name) {
   this.name = name;
   this.clients = new Array();
-  this.name = 'No name';
   this.addClient = function(client) {
     this.clients.push(client);
   };
@@ -35,6 +34,9 @@ function Room(name) {
   };
   this.removeClient = function(client) {
     this.clients.removeByValue(client);
+  }
+  this.getName = function() {
+    return this.name;
   }
 }
 
@@ -64,6 +66,7 @@ function Client(connection, key, name) {
     }
     this.rooms.push(room);
     room.addClient(this);
+    console.log("client added to room " + room.getName());
   };
   this.removeRoom = function(room) {
     this.rooms.removeByValue(room);
@@ -79,6 +82,7 @@ function Client(connection, key, name) {
       console.log(obj);
       var json = JSON.stringify({ type:'message', data: obj });
       c.getConnection().sendUTF(json);
+      console.log("client removed from room " + room.getName());
     }
   };
   this.getConnection = function() {
@@ -146,13 +150,14 @@ wsServer = new WebSocketServer({
 wsServer.on('request', function(request) {
     var connection = request.accept(null, request.origin);
     var client = new Client(connection, request.key, request.resourceURL.query.name);
+    console.log(request);
     
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
             var json = JSON.parse(message.utf8Data);
+            console.log("Received from " + client.getName() + " (" + client.getKey() + ")");
+            console.log(json);
             if(json.action == 'updateposition') {
-              console.log("Received from " + client.getName() + " (" + client.getKey() + ")");
-              console.log(json);
               client.updateLocation(json.lat, json.lon);
             } else if (json.action == 'enterroom') {
               var room = World.getOrCreateRoom(json.name);
