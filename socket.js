@@ -1,14 +1,27 @@
-  socketConnection = null;
+  socket = null;
   socketConnectionInited = false;
+  
   window.addEventListener("load", function(){
-    var url = 'ws://46.4.79.121:1337';
+    var url = 'http://46.4.79.121:1337';
+    //var url = 'http://localhost:1337';
+    socket = io.connect(url);
     var name = getRequestParam('name');
     if(name) {
-      url += '?name=' + name;
+      socket.emit('setname', name)
     }
-    socketConnection = new WebSocket(url);
-    socketConnection.onopen = function(evt) {
+    socket.on('connect', function(data) {
       socketConnectionInited= true;
+      if(gpsPlace && gpsPlace.getPosition()) {
+        console.log("gpsPlace is inited");
+        var obj = {
+          time: new Date(),
+          lat: gpsPlace.getPosition().lat(),
+          lon: gpsPlace.getPosition().lng()
+        };
+        socket.emit('updatelocation', obj);
+      } else {
+        console.log("gpsPlace not yet inited");
+      }
       var roomParam = getRequestParam('room');
       if(roomParam) {
         var rooms = roomParam.split(',');
@@ -16,11 +29,9 @@
         for (var j=0; j < rooms.length; j++) {
           var room = rooms[j];
           var obj = {
-            action: "enterroom",
             name: room
           };
-          var json = JSON.stringify(obj);
-          socketConnection.send(json);
+          socket.emit('enterroom', obj);
           var chathtml = '<div class="roomlistitem">';
           chathtml += '<div class="roombutton" id="' + room + '_roombutton" onclick="document.getElementById(\'' + room + '_roomwindow\').style.display=\'block\';this.style.display=\'none\'">' + room + '</div>';
           chathtml += '<div class="roomwindow" id="' + room + '_roomwindow"><h1><span class="closer" onclick="document.getElementById(\'' + room + '_roombutton\').style.display=\'block\';document.getElementById(\'' + room + '_roomwindow\').style.display=\'none\'">-</span>' + room + '</h1>';
@@ -32,31 +43,33 @@
           document.getElementById('roomlist').innerHTML += chathtml;
         }
       }
-    };
-    socketConnection.onclose = function(evt) {
-    
-    };
-    socketConnection.onmessage = function(message) {
-      var json = JSON.parse(message.data);
-      console.log(json);
-      if(json.data.action == 'remove') {
-        FriendMarker.removeMarker(json.data.identifier);
-      } else if(json.data.action == 'add' || json.data.action == 'updateposition'){
-        var marker = FriendMarker.getOrCreateMarker(json.data.identifier);
-        marker.setName(json.data.name);
-        marker.setPosition(new google.maps.LatLng(json.data.lat, json.data.lon));
-      } else if(json.data.action == 'chat'){
-        document.getElementById(json.data.room + '_chattext').innerHTML = document.getElementById(json.data.room + '_chattext').innerHTML
-          + '<div class="chatline">' + json.data.name + ': '+ json.data.text + '</div>';
-        document.getElementById(json.data.room + '_roombutton').style.display='none';
-        document.getElementById(json.data.room + '_roomwindow').style.display='block';
-      }
-    };
-    socketConnection.onerror = function(evt) {
-    
-    };
+    });
+    socket.on('removeclient', function (data) {
+      console.log('removeclient');
+      console.log(data);
+      FriendMarker.removeMarker(data.identifier);
+    });
+    socket.on('addclient', function (data) {
+      console.log('addclient');
+      console.log(data);
+      var marker = FriendMarker.getOrCreateMarker(data.identifier);
+      marker.setName(data.name);
+      marker.setPosition(new google.maps.LatLng(data.lat, data.lon));
+    });
+    socket.on('updatelocation', function (data) {
+      console.log('updatelocation');
+      console.log(data);
+      var marker = FriendMarker.getOrCreateMarker(data.identifier);
+      marker.setName(data.name);
+      marker.setPosition(new google.maps.LatLng(data.lat, data.lon));
+    });
+    socket.on('chat', function (data) {
+      document.getElementById(data.room + '_chattext').innerHTML = document.getElementById(data.room + '_chattext').innerHTML
+        + '<div class="chatline">' + data.name + ': '+ data.text + '</div>';
+      document.getElementById(data.room + '_roombutton').style.display='none';
+      document.getElementById(data.room + '_roomwindow').style.display='block';
+    });
   }, false);
-  
   
 function getRequestParam(name){
    if(name=(new RegExp('[?&]'+encodeURIComponent(name)+'=([^&]*)')).exec(location.search))

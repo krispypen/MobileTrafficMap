@@ -40,8 +40,8 @@ function Room(name) {
   }
 }
 
-function Client(connection, key, name) {
-  this.connection = connection;
+function Client(socket, key, name) {
+  this.socket = socket;
   this.key = key;
   this.name = name;
   this.lat;
@@ -49,20 +49,29 @@ function Client(connection, key, name) {
   this.rooms = new Array();
   this.addRoom = function(room) {
     var roomMates = room.getClients();
+    console.log('roommates.length: ' + roomMates.length);
     for (var j=0; j < roomMates.length; j++) {
       var roomMate = roomMates[j];
       var obj = {
         time: (new Date()),
-        action: "add",
         identifier: roomMate.getKey(),
         name: roomMate.getName(),
         lat: roomMate.getLatitude(),
         lon: roomMate.getLongitude()
       };
-      console.log("sending to " + this.getName() + " (" + this.getKey() + ")");
+      console.log("sending addclient to " + this.getName() + " (" + this.getKey() + ")");
       console.log(obj);
-      var json = JSON.stringify({ type:'message', data: obj });
-      this.getConnection().sendUTF(json);
+      this.getSocket().emit('addclient', obj);
+      var obj = {
+        time: new Date(),
+        identifier: this.getKey(),
+        name: this.getName(),
+        lat: this.getLatitude(),
+        lon: this.getLongitude()
+      };
+      console.log("sending updatelocation to " + roomMate.getName() + " (" + roomMate.getKey() + ")");
+      console.log(obj);
+      roomMate.getSocket().emit('addclient', obj);
     }
     this.rooms.push(room);
     room.addClient(this);
@@ -75,18 +84,16 @@ function Client(connection, key, name) {
     for (var j=0; j < clients.length; j++) {
       var c = clients[j];
       var obj = {
-        action: "remove",
         identifier: this.getKey()
       };
-      console.log("sending to " + c.getName());
+      console.log("sending removeclient to " + c.getName());
       console.log(obj);
-      var json = JSON.stringify({ type:'message', data: obj });
-      c.getConnection().sendUTF(json);
+      c.getSocket().emit('removeclient', obj);
       console.log("client removed from room " + room.getName());
     }
   };
-  this.getConnection = function() {
-    return this.connection;
+  this.getSocket = function() {
+    return this.socket;
   }
   this.getRooms = function() {
     return this.rooms;
@@ -117,15 +124,13 @@ function Client(connection, key, name) {
         if(c.getKey() != this.getKey()) {
           var obj = {
             time: new Date(),
-            action: "updateposition",
             identifier: this.getKey(),
             lat: this.getLatitude(),
             lon: this.getLongitude()
           };
-          console.log("sending to " + c.getName() + " (" + c.getKey() + ")");
+          console.log("sending updatelocation to " + c.getName() + " (" + c.getKey() + ")");
           console.log(obj);
-          var json = JSON.stringify({ type:'message', data: obj });
-          c.getConnection().sendUTF(json);
+          c.getSocket().emit('updatelocation', obj);
         }
       }
     }
@@ -135,62 +140,51 @@ function Client(connection, key, name) {
   };
 }
 
-var WebSocketServer = require('websocket').server;
-var http = require('http');
+var app = require('http').createServer()
+  , io = require('socket.io').listen(app);
 
-var server = http.createServer();
-server.listen(1337);
+app.listen(1337);
 
-// create the server
-wsServer = new WebSocketServer({
-    httpServer: server
-});
-
-// WebSocket server
-wsServer.on('request', function(request) {
-    var connection = request.accept(null, request.origin);
-    var client = new Client(connection, request.key, request.resourceURL.query.name);
-    console.log(request);
-    
-    connection.on('message', function(message) {
-        if (message.type === 'utf8') {
-            var json = JSON.parse(message.utf8Data);
-            console.log("Received from " + client.getName() + " (" + client.getKey() + ")");
-            console.log(json);
-            if(json.action == 'updateposition') {
-              client.updateLocation(json.lat, json.lon);
-            } else if (json.action == 'enterroom') {
-              var room = World.getOrCreateRoom(json.name);
-              client.addRoom(room);
-            } else if (json.action == 'leaveroom') {
-              var room = World.getOrCreateRoom(json.name);
-              client.removeRoom(room);
-            } else if (json.action == 'sendchat') {
-              var roomId = json.room;
-              var text = json.text;
-              var room = World.getOrCreateRoom(roomId);
-              var clients = room.getClients();
-              for (var j=0; j < clients.length; j++) {
-                var c = clients[j];
-                var obj = {
-                  time: new Date(),
-                  action: "chat",
-                  room: roomId,
-                  text: text,
-                  name: client.getName()
-                };
-                console.log("sending to " + c.getName() + " (" + c.getKey() + ")");
-                console.log(obj);
-                var json = JSON.stringify({ type:'message', data: obj });
-                c.getConnection().sendUTF(json);
-              }
-            }
-        }
-    });
-
-    connection.on('close', function(connection) {
-        World.removeClient(client);
-    });
+io.sockets.on('connection', function (socket) {
+  var client = new Client(socket, socket.id, "No name");
+  socket.on('updatelocation', function (data) {
+    console.log('updatelocation received from ' + client.getName());
+    console.log(data);
+    client.updateLocation(data.lat, data.lon);
+  });
+  socket.on('setname', function (data) {
+    client.setName(data);
+  });
+  socket.on('enterroom', function (data) {
+    var room = World.getOrCreateRoom(data.name);
+    client.addRoom(room);
+  });
+  socket.on('leaveroom', function (data) {
+    var room = World.getOrCreateRoom(data.name);
+    client.removeRoom(room);
+  });
+  socket.on('sendchat', function (data) {
+  console.log("chat received");
+    var roomId = data.room;
+    var text = data.text;
+    var room = World.getOrCreateRoom(roomId);
+    var clients = room.getClients();
+    for (var j=0; j < clients.length; j++) {
+      var c = clients[j];
+      var obj = {
+        time: new Date(),
+        room: roomId,
+        text: text,
+        name: client.getName()
+      };
+      console.log("sending chat to " + c.getName() + " (" + c.getKey() + ")");
+      console.log(obj);
+      c.getSocket().emit('chat', obj);
+    }
+  });
+  socket.on('disconnect', function() {
+    World.removeClient(client);
+  });
 });
 
 Array.prototype.removeByValue = function(val) {
