@@ -68,3 +68,5 @@ h3 { color: #898989; text-transform: uppercase; }
 .roomlistitem .roomwindow h1 {margin:0;font-size:18px;width:100%;border-bottom:1px solid grey; background: #ddd; border-top-left-radius: 5px; border-top-right-radius: 5px}
 .roomlistitem .roomwindow .chattext{overflow-y:scroll; position:absolute; bottom:25px;top:25px;width:100%}
 .roomlistitem .roomwindow .chatinputbox{position:absolute; bottom:0;right:0; width:193px}
+
+#beta {position:absolute; top: 10px; right: 16px; font-size: 12px; font-weight: bold; color: gray}

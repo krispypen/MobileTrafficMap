@@ -1,3 +1,6 @@
+var twitter = require('ntwitter');
+
+var twit = new twitter(require('./twauth.js').twitterauth);
 
 var World = {
   rooms: new Array(),
@@ -38,6 +41,52 @@ function Room(name) {
   this.getName = function() {
     return this.name;
   }
+  console.log("listening to twitter track " + name);
+  twit.stream('statuses/filter', {'track': name}, function(stream) {
+  //twit.stream('statuses/sample', function(stream) {
+  //twit.stream('statuses/filter', {'locations':'3.353821,50.678483,5.49292,51.198401'}, function(stream) {
+    stream.on('data', function (data) {
+      //console.log(data);
+      if(data.coordinates || (data.place && data.place.bounding_box)) {
+        var lat = 0;
+        var lon = 0;
+        if(data.coordinates) {
+          lat = data.coordinates.coordinates[1];
+          lon = data.coordinates.coordinates[0];
+        } else if(data.place) {
+          var coordinates = data.place.bounding_box.coordinates[0];
+          for (var j=0; j < coordinates.length; j++) {
+            c = coordinates[j];
+            lat += c[1];
+            lon += c[0];
+          }
+          lat = lat / coordinates.length;
+          lon = lon / coordinates.length;
+        }
+        console.log("tweet with geolocation : " + data.text);
+        var room = World.getOrCreateRoom(name);
+        var clients = room.getClients();
+        for (var j=0; j < clients.length; j++) {
+          var c = clients[j];
+          var obj = {
+            name: data.user.name,
+            text: data.text,
+            lat: lat,
+            lon: lon
+          };
+          console.log("sending newtweet to " + c.getName());
+          console.log(obj);
+          c.getSocket().emit('newtweet', obj);
+        }
+      } else {
+        console.log(data);
+        console.log("tweet without geolocation : " + data.text);
+      }
+    });
+    stream.on('error', function(error, code) {
+      console.log("My error: " + error + ": " + code);
+    });
+  });
 }
 
 function Client(socket, key, name) {

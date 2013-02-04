@@ -69,6 +69,11 @@
       document.getElementById(data.room + '_roombutton').style.display='none';
       document.getElementById(data.room + '_roomwindow').style.display='block';
     });
+    socket.on('newtweet', function (data) {
+      console.log('newtweet');
+      console.log(data);
+      TwitterMarker.createMarker(data.name, data.text, data.lat, data.lon);
+    });
   }, false);
   
 function getRequestParam(name){
